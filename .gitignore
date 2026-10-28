@@ -1,0 +1,6 @@
+build/
+artifacts/
+.local/
+logs/
+*.keystore
+.tools/
