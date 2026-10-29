@@ -46,7 +46,7 @@ New-Item -ItemType Directory -Force $artifacts,$toolState | Out-Null
         -R $compiledResources `
         --manifest (Join-Path $appRoot 'AndroidManifest.xml') `
         --min-sdk-version 24 --target-sdk-version 24 `
-        --version-code 1 --version-name '0.1.0'
+        --version-code 10 --version-name '0.5.0'
     if ($LASTEXITCODE -ne 0) { throw "aapt2 link failed: $LASTEXITCODE" }
 
     & jar uf $resourcesApk -C $voskRoot assets
