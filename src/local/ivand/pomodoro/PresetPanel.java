@@ -58,7 +58,7 @@ final class PresetPanel {
         TextView title=text(preset.name,21,ink);title.setTypeface(null,Typeface.BOLD);title.setMaxLines(2);details.addView(title);gap(details,5);
         TextView summary=text("Работа: "+preset.work+" мин · отдых: "+preset.rest+" мин\nДлинный: "+preset.longRest+" мин после "+preset.every+" работ",13,muted);summary.setLineSpacing(dp(2),1);details.addView(summary);gap(details,9);
         details.addView(button("Применить режим",true,()->{apply.preset(chosen.id);browser.dismiss();}),new LinearLayout.LayoutParams(-1,dp(40)));
-        TextView note=text("Начнёт новый цикл и сбросит текущий интервал. Счёт за день сохранится.",10,muted);LinearLayout.LayoutParams noteLp=new LinearLayout.LayoutParams(-1,dp(34));noteLp.topMargin=dp(5);details.addView(note,noteLp);
+        TextView note=text("Начнёт новый цикл и сбросит текущий интервал.",10,muted);LinearLayout.LayoutParams noteLp=new LinearLayout.LayoutParams(-1,dp(34));noteLp.topMargin=dp(5);details.addView(note,noteLp);
         details.addView(button("Создать на основе",false,()->edit(new PomodoroPreset("custom-"+UUID.randomUUID(),newName(),chosen.work,chosen.rest,chosen.longRest,chosen.every,false))),new LinearLayout.LayoutParams(-1,dp(33)));
         if(!preset.builtIn){
             manageActions.addView(button("Изменить",false,()->edit(chosen)),new LinearLayout.LayoutParams(0,dp(38),1));

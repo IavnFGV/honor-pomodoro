@@ -89,3 +89,10 @@ The initial silent notification was demoted by Android. A later patch adds an ac
 Local logs are ignored. Screenshots contain a diagnostic session count and one-minute test setting. Source defaults remain 25 / 5 / 15 minutes.
 
 0.3.2: updated in-app Voice Commands help to include running-interval and next-stage duration examples, remaining-from-command semantics, and minute limits. Previous help had omitted these commands despite their presence in recognition and service code. APK built, signed, and installed on Honor; help layout checked on device.
+
+## 0.6.0 — tomato reset menu and removal of statistics (2026-10-30)
+
+- Removed daily/lifetime counters from the engine, service state, UI updates, and screen. Upgrade removes the old `completed`, `date`, and `todayCount` preference keys; existing cycle progress is retained.
+- Added a tomato reset target with a 48 dp hit area and a styled immersive two-option menu. One large Start/Pause button replaces the previous split controls.
+- JVM tests cover resetting an overridden long rest without losing cycle progress, then resetting the full cycle to paused work with the saved duration and a fresh short-rest sequence. All six suites pass.
+- APK 0.6.0 (version code 11) builds and its signature verifies. No authorized ADB device was connected during this change, so installation, on-device layout, and lock-screen interaction remain unverified for this version. README screenshots are explicitly marked as the previous version where applicable.

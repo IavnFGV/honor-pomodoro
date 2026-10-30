@@ -24,28 +24,25 @@ public final class PomodoroService extends Service {
     private boolean autoWork=false,autoRest=true;
     private String presetId="",presetName="Свой режим";
     private long confirmUntil;
-    private String today;
-    private int todayCount;
     private String notificationText="";
     private boolean destroyed;
     private PendingIntent alarm;
     private NotificationManager notifications;
     private SpeechOutput speech;
     private boolean speaking;
-    private String date() {return new java.text.SimpleDateFormat("yyyy-MM-dd",Locale.ROOT).format(new java.util.Date());}
     @Override public void onCreate() {
         super.onCreate(); notifications=(NotificationManager)getSystemService(NOTIFICATION_SERVICE);
         SharedPreferences p=getSharedPreferences("timer",0);
         timer.workMinutes=p.getInt("work",25); timer.shortMinutes=p.getInt("short",5);timer.longMinutes=p.getInt("long",15);
-        timer.completed=p.getInt("completed",0);timer.work=p.getBoolean("isWork",true);
-        timer.longEvery=p.getInt("longEvery",4);timer.cycleCompleted=p.getInt("cycleCompleted",timer.completed);
+        timer.work=p.getBoolean("isWork",true);
+        timer.longEvery=p.getInt("longEvery",4);timer.cycleCompleted=p.getInt("cycleCompleted",0);
         presetId=p.getString("presetId","");presetName=p.getString("presetName","Свой режим");
         timer.oneOffMillis=p.getLong("oneOffMillis",0);
         timer.remaining=p.getLong("remaining",timer.duration());
         // Recovered intervals are paused. Never silently start a microphone after process death/reboot.
         if(p.getBoolean("running",false)) timer.remaining=Math.min(timer.duration(),Math.max(0,p.getLong("wallDeadline",0)-System.currentTimeMillis()));
         if(timer.remaining<=0) timer.remaining=timer.duration();
-        today=p.getString("date",date()); todayCount=p.getInt("todayCount",0);
+        p.edit().remove("completed").remove("date").remove("todayCount").apply();
         keepScreen=p.getBoolean("keepScreen",true);
         autoWork=p.getBoolean("autoWork",false);autoRest=p.getBoolean("autoRest",true);
         alarm=PendingIntent.getService(this,3,new Intent(this,PomodoroService.class).setAction("tick"),PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
@@ -65,11 +62,11 @@ public final class PomodoroService extends Service {
     private void save() {
         long left=timer.left(SystemClock.elapsedRealtime());
         getSharedPreferences("timer",0).edit().putInt("work",timer.workMinutes).putInt("short",timer.shortMinutes).putInt("long",timer.longMinutes)
-          .putInt("completed",timer.completed).putBoolean("isWork",timer.work).putLong("remaining",left)
+          .putBoolean("isWork",timer.work).putLong("remaining",left)
           .putBoolean("running",timer.running).putLong("wallDeadline",System.currentTimeMillis()+left)
           .putLong("oneOffMillis",timer.oneOffMillis).putBoolean("autoWork",autoWork).putBoolean("autoRest",autoRest)
           .putInt("longEvery",timer.longEvery).putInt("cycleCompleted",timer.cycleCompleted).putString("presetId",presetId).putString("presetName",presetName)
-          .putString("date",today).putInt("todayCount",todayCount).putBoolean("keepScreen",keepScreen).apply();
+          .putBoolean("keepScreen",keepScreen).apply();
         AlarmManager am=(AlarmManager)getSystemService(ALARM_SERVICE); am.cancel(alarm);
         if(timer.running){long at=timer.work&&timer.left(SystemClock.elapsedRealtime())>5000?timer.deadline-5000:timer.deadline;am.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP,at,alarm);}
         else if(transition.kind!=0&&transition.deadline>0)am.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP,transition.deadline,alarm);
@@ -87,13 +84,12 @@ public final class PomodoroService extends Service {
         }
         boolean wasWork=timer.work;
         if(timer.tick(now)) {
-            rollDay();if(wasWork) todayCount++;
             transition.begin(wasWork,now,autoWork,autoRest);holdEndingCpu();
             if(voice!=null)voice.setDecision(transition.kind);
             save(); signal(wasWork?Color.RED:Color.GREEN);
             lastCommand=wasWork?"Работа завершена. Начать перерыв?":"Перерыв завершён. Готов начать работу?";
             showWakeScreen();
-            Log.i("HonorPomo","COMPLETE work="+wasWork+" completed="+timer.completed);
+            Log.i("HonorPomo","COMPLETE work="+wasWork+" cycleProgress="+timer.cycleCompleted);
         }
         if(transition.expire(timer,now)){clearDecision();lastCommand=timer.work?"Работа началась автоматически":"Перерыв начался автоматически";save();Log.i("HonorPomo",timer.work?"AUTO_WORK started":"AUTO_REST started");}
     }
@@ -103,7 +99,6 @@ public final class PomodoroService extends Service {
     private void editDecision(){if(transition.kind==0)return;transition.edit();if(endingLock!=null&&endingLock.isHeld())endingLock.release();lastCommand="Выберите минуты и нажмите «Начать»";save();}
     private void setNextMinutes(int minutes){if(transition.kind==0)return;editDecision();try{timer.setNextMinutes(minutes);lastCommand="Следующий интервал: "+minutes+" мин · только этот раз";save();}catch(IllegalArgumentException e){lastCommand="Допустимо от 1 до "+(timer.work?120:60)+" минут";}}
     private void warningTone(){try{final ToneGenerator t=new ToneGenerator(AudioManager.STREAM_NOTIFICATION,40);t.startTone(ToneGenerator.TONE_PROP_BEEP,65);handler.postDelayed(()->t.release(),120);}catch(Exception error){Log.w("HonorPomo","Warning tone",error);}}
-    private void rollDay(){if(!date().equals(today)){today=date();todayCount=0;}}
     private void tone() {try {final ToneGenerator t=new ToneGenerator(AudioManager.STREAM_NOTIFICATION,65);t.startTone(ToneGenerator.TONE_PROP_ACK,180);handler.postDelayed(()->t.release(),300);}catch(Exception e){Log.w("HonorPomo","Tone",e);}}
     private void signal(int color) {
         notifications.cancel(2);
@@ -117,9 +112,9 @@ public final class PomodoroService extends Service {
         Log.i("HonorPomo","LED requested="+Integer.toHexString(color)+" on=500 off=1500 (hardware unverified)");
     }
     private void publish() {
-        rollDay();long left=timer.left(SystemClock.elapsedRealtime());
+        long left=timer.left(SystemClock.elapsedRealtime());
         UiUpdates.send(this,new Intent(UPDATE).putExtra("left",left).putExtra("duration",timer.duration()).putExtra("deadline",timer.deadline)
-          .putExtra("running",timer.running).putExtra("work",timer.work).putExtra("completed",timer.completed).putExtra("today",todayCount)
+          .putExtra("running",timer.running).putExtra("work",timer.work)
           .putExtra("voice",voice!=null).putExtra("voiceStatus",voiceStatus).putExtra("message",lastCommand).putExtra("keepScreen",keepScreen)
           .putExtra("decision",transition.kind).putExtra("decisionSeconds",transition.seconds(SystemClock.elapsedRealtime()))
           .putExtra("decisionAuto",transition.deadline>0).putExtra("decisionDeadline",transition.deadline)
@@ -141,11 +136,12 @@ public final class PomodoroService extends Service {
             else lastCommand="Режим не найден";
             publish();return START_STICKY;
         }
-        if(java.util.Arrays.asList("start","pause","reset","work","break","config","exit").contains(action))clearDecision();
+        if(java.util.Arrays.asList("start","pause","reset","resetCycle","work","break","config","exit").contains(action))clearDecision();
         switch(action) {
           case "start":timer.start(now);lastCommand="";notifications.cancel(2);break;
           case "pause":timer.pause(now);break;
-          case "reset":timer.reset();lastCommand="Таймер сброшен";break;
+          case "reset":timer.reset();confirmUntil=0;notifications.cancel(2);lastCommand="Интервал сброшен";break;
+          case "resetCycle":timer.resetCycle();confirmUntil=0;notifications.cancel(2);lastCommand="Новый цикл · ожидаю запуска";break;
           case "work":timer.select(true);lastCommand="";break;
           case "break":timer.select(false);lastCommand="";break;
           case "voice": if(voice==null)startVoice();else stopVoice();break;

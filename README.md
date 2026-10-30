@@ -4,11 +4,11 @@ A fullscreen, offline Pomodoro timer that gives an old **Honor 6A** a new job as
 
 Built and tested on **Honor DLI-TL20 · Android 7.0 · 2 GB RAM · ARMv7**. The interface and voice commands are intentionally **in Russian**; documentation is in English.
 
-Current version: **0.5.0** — custom presets, configurable stage handoffs, one-off voice duration changes, and offline spoken remaining time.
+Current version: **0.6.0** — reset the interval or the whole cycle from the tomato; no daily or lifetime statistics.
 
 ![Landscape timer](docs/images/timer.png)
 
-*Device screenshot with the Classic preset selected, ready to start.*
+*Earlier device screenshot (0.5.0). In 0.6.0 the separate reset button and session statistics are removed; tap the tomato above the countdown to reset.*
 
 ## Features
 
@@ -16,16 +16,20 @@ Current version: **0.5.0** — custom presets, configurable stage handoffs, one-
 - The timer can appear over the lock screen. A recognized wake phrase or addressed command brings it forward and turns the display on, without dismissing the device lock (Android 7).
 - Large countdown and a smooth progress ring: red for work, green for breaks.
 - Tomato icons track completed work sessions in the selected cycle (1–8).
-- Start, pause, resume, reset confirmation, and manual work/break selection.
+- One large Start/Pause button, resume, and manual work/break selection. Tap the tomato marked ↺ to choose **Reset interval** or **Reset entire cycle**.
 - Built-in and custom presets define work, short/long rest, and the number of work sessions before a long rest.
 - Five warning beeps during the final five seconds of work.
 - Each completed stage opens a styled next-stage editor: minute stepper, quick presets, Start, and Later. Editing affects only the upcoming stage, not saved work/break durations.
 - Independent persistent checkboxes control automatic starts: **rest on**, **work off** by default. An enabled automatic start waits ten seconds for a reply; editing cancels that countdown. The selected preset determines when a long rest is due.
-- Daily completed-session count, optional screen-on mode, background timing, and completion sound.
+- Optional screen-on mode, background timing, and completion sound. No daily/lifetime totals or session statistics are collected; only cycle progress is retained to schedule long rests. Previously saved totals are removed on upgrade.
 - Offline Russian voice control activated by **«Помидорка»** (*pomidorka*, “little tomato”).
 - Experimental notification LED controls.
 
 ![Settings](docs/images/settings.png)
+
+## Resetting
+
+Tap the tomato above the countdown to open the reset menu. **Сбросить интервал** restarts the current work/rest interval with its current duration (including a one-off override) and keeps cycle progress. **Сбросить весь цикл** clears cycle progress and any one-off override, and returns to the first work interval of the selected mode. Both leave the timer paused until Start; neither changes saved modes or auto-start settings. Cancel leaves the timer untouched.
 
 ## Presets
 
@@ -37,7 +41,7 @@ Tap the mode name at the top left of the timer, or open **Settings → Choose or
 | Классика — Classic | 25 min | 5 min | 15 min | 4 work sessions |
 | Глубокая работа — Deep work | 50 min | 10 min | 20 min | 2 work sessions |
 
-Selecting a card only previews it. **Apply mode** stops and resets the current interval, clears one-off time overrides, and starts a new cycle ready for work. Your daily and lifetime completed-session totals are retained. Auto-start preferences remain global and are not changed by presets.
+Selecting a card only previews it. **Apply mode** stops and resets the current interval, clears one-off time overrides, and starts a new cycle ready for work. Auto-start preferences remain global and are not changed by presets.
 
 Use **+ Custom mode** to create your own, or **Create based on** to copy a built-in. Choose a name, three durations, and a cycle length of 1–8 work sessions. Save first, then apply separately. Custom modes can be edited and deleted; built-ins cannot be overwritten. Changes are stored locally and survive app restarts. Editing or deleting a saved definition does not alter an already applied timer configuration until another mode is explicitly applied.
 

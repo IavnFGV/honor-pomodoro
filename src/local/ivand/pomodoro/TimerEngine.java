@@ -3,7 +3,6 @@ package local.ivand.pomodoro;
 /** Monotonic timer. Owned by the service main thread; no Android dependencies. */
 public final class TimerEngine {
     public int workMinutes = 25, shortMinutes = 5, longMinutes = 15;
-    public int completed = 0;
     public int cycleCompleted = 0, longEvery=4;
     public boolean work = true, running = false;
     public long remaining = 25 * 60000L, deadline;
@@ -19,10 +18,11 @@ public final class TimerEngine {
     public void start(long now) { if (!running) { if (remaining <= 0) remaining = duration(); deadline = now + remaining; running = true; } }
     public void pause(long now) { remaining = left(now); running = false; }
     public void reset() { running = false; remaining = duration(); }
+    public void resetCycle() { cycleCompleted=0; select(true); }
     public void select(boolean isWork) { work = isWork; oneOffMillis=0; reset(); }
     public boolean tick(long now) {
         if (!running || now < deadline) return false;
-        if (work){completed++;cycleCompleted++;}
+        if (work)cycleCompleted++;
         work = !work;
         oneOffMillis=0;
         running = false;

@@ -6,18 +6,22 @@ public final class TimerEngineTest {
         t.start(1000); check(t.left(61000) == 24*60000L);
         t.pause(61000); check(t.left(90000) == 24*60000L);
         t.start(100000); check(!t.tick(100001));
-        check(t.tick(100000+24*60000L)); check(t.completed == 1 && !t.work && !t.running);
-        check(!t.tick(Long.MAX_VALUE)); check(t.completed == 1);
+        check(t.tick(100000+24*60000L)); check(t.cycleCompleted == 1 && !t.work && !t.running);
+        check(!t.tick(Long.MAX_VALUE)); check(t.cycleCompleted == 1);
         for(int i=1; i<4; i++) { t.select(true); t.start(0); check(t.tick(25*60000L)); }
-        check(t.completed == 4 && t.remaining == 15*60000L);
-        t.start(0); check(t.tick(15*60000L)); check(t.work && t.completed == 4);
+        check(t.cycleCompleted == 4 && t.remaining == 15*60000L);
+        t.start(0); check(t.tick(15*60000L)); check(t.work && t.cycleCompleted == 4);
         t.start(0); t.reset(); check(!t.running && t.remaining == 25*60000L);
-        t.completed=0;t.select(true);t.start(1000);t.changeCurrentMinutes(15,301000);
-        check(t.running&&t.left(301000)==900000&&t.deadline==1201000&&t.workMinutes==25&&t.completed==0);
-        check(!t.tick(1200999)&&t.tick(1201000)&&t.completed==1&&!t.work&&t.duration()==300000);
+        t.cycleCompleted=0;t.select(true);t.start(1000);t.changeCurrentMinutes(15,301000);
+        check(t.running&&t.left(301000)==900000&&t.deadline==1201000&&t.workMinutes==25&&t.cycleCompleted==0);
+        check(!t.tick(1200999)&&t.tick(1201000)&&t.cycleCompleted==1&&!t.work&&t.duration()==300000);
         t.select(true);t.changeCurrentMinutes(10,999999);check(!t.running&&t.remaining==600000);
         t.start(1000000);check(t.deadline==1600000);
         boolean rejected=false;try{t.changeCurrentMinutes(0,1000000);}catch(IllegalArgumentException expected){rejected=true;}check(rejected&&t.deadline==1600000);
-        System.out.println("TimerEngine: pause/resume, deadline, exactly-once completion, fourth long break PASS");
+        t.cycleCompleted=4;t.select(false);t.changeCurrentMinutes(2,0);t.start(0);t.reset();
+        check(!t.running&&!t.work&&t.cycleCompleted==4&&t.remaining==120000);
+        t.resetCycle();check(!t.running&&t.work&&t.cycleCompleted==0&&t.oneOffMillis==0&&t.remaining==1500000);
+        t.start(0);check(t.tick(1500000)&&t.cycleCompleted==1&&t.duration()==300000);
+        System.out.println("TimerEngine: pause/resume, deadline, completion, long break, interval/cycle reset PASS");
     }
 }
