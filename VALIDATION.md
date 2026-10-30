@@ -96,3 +96,11 @@ Local logs are ignored. Screenshots contain a diagnostic session count and one-m
 - Added a tomato reset target with a 48 dp hit area and a styled immersive two-option menu. One large Start/Pause button replaces the previous split controls.
 - JVM tests cover resetting an overridden long rest without losing cycle progress, then resetting the full cycle to paused work with the saved duration and a fresh short-rest sequence. All six suites pass.
 - APK 0.6.0 (version code 11) builds and its signature verifies. No authorized ADB device was connected during this change, so installation, on-device layout, and lock-screen interaction remain unverified for this version. README screenshots are explicitly marked as the previous version where applicable.
+
+### Installed-device follow-up (2026-10-30)
+
+- Version 0.6.0 / code 11 was successfully installed and launched on Honor. The user reports the new controls working.
+- Read-only log review after installation: crash buffer empty; no app ANR/crash events in the retained event buffer. The recorded kill at installation was the expected package-update stop of the previous process. Log buffers are finite, so this does not establish an exhaustive lifetime history.
+- Current app PID remained active with 315,500 captured 80 ms audio frames (about seven hours of audio). Vosk cumulative inference average 28.62 ms per 80 ms frame; reported maximum 208 ms. Occasional frames exceed the frame budget; no end-to-end audio-loss claim is made.
+- Snapshot: total app PSS about 185 MiB; battery temperature 35.5 C, battery 100%, full status. These are point-in-time readings, not a thermal or battery endurance test.
+- Accepted as the first usable desk-device version. The remaining controlled robustness checks above remain optional follow-up work.

@@ -6,6 +6,8 @@ Built and tested on **Honor DLI-TL20 · Android 7.0 · 2 GB RAM · ARMv7**. The 
 
 Current version: **0.6.0** — reset the interval or the whole cycle from the tomato; no daily or lifetime statistics.
 
+Installed on the Honor and accepted for daily desk use on 2026-10-30. A follow-up review found no app crashes or ANRs in the retained logs, with offline listening still active after about seven hours of captured audio. See [validation notes](VALIDATION.md) for measurements and remaining checks.
+
 ![Landscape timer](docs/images/timer.png)
 
 *Earlier device screenshot (0.5.0). In 0.6.0 the separate reset button and session statistics are removed; tap the tomato above the countdown to reset.*
